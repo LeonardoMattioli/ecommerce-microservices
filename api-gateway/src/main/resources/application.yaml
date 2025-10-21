@@ -4,25 +4,32 @@ server:
 spring:
   application:
     name: api-gateway
-  
+
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
+          lower-case-service-id: true
       routes:
-        - id: product-service-route
-          uri: lb://PRODUCT-SERVICE
+        - id: users-service-route
+          uri: lb://USERS-SERVICE
           predicates:
-            - Path=/api/products/**
-
-        - id: order-service-route
-          uri: lb://ORDER-SERVICE
-          predicates:
-            - Path=/api/orders/**
+            - Path=/api/users/**
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: false
+
+
+jwt:
+  secret: "YyN1cDIkUnNlY3VyZV8kM2NyM3QhX2tleV9mb3JfYXV0aGVudGljYXRpb25fMTIzNDU2Nzg5MA=="
+
+app:
+  security:
+    public-routes:
+      - /api/users/login
+      - /api/users/register
+      - /api/users/refresh

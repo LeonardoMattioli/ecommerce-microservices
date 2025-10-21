@@ -1,0 +1,35 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: USERS-SERVICE
+
+  datasource:
+    url: jdbc:h2:mem:usersdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: "YyN1cDIkUnNlY3VyZV8kM2NyM3QhX2tleV9mb3JfYXV0aGVudGljYXRpb25fMTIzNDU2Nzg5MA=="
+  expiration-ms: 3600000
+  refresh-expiration-ms: 604800000
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
