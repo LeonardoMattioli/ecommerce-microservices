@@ -1,10 +1,10 @@
-package br.com.leonardomattioli.ecommerce.discovery;
+package br.com.leonardomattioli.ecommerce.users;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ApplicationTests {
+class UsersServiceTests {
 
 	@Test
 	void contextLoads() {
