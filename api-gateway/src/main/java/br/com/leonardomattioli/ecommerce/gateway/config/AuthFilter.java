@@ -21,11 +21,11 @@ public class AuthFilter implements GlobalFilter, Ordered {
 
     private final JwtUtil jwtUtil;
 
-    @Value("${app.security.public-routes}")
     private List<String> publicRoutes;
 
-    public AuthFilter(JwtUtil jwtUtil) {
+    public AuthFilter(JwtUtil jwtUtil, SecurityProperties securityProperties) {
         this.jwtUtil = jwtUtil;
+        this.publicRoutes = securityProperties.getPublicRoutes();
     }
 
     @Override
@@ -47,18 +47,16 @@ public class AuthFilter implements GlobalFilter, Ordered {
             return unauthorized(exchange);
         }
 
-        String token = authHeader.substring(7); // Remove o "Bearer "
+        String token = authHeader.substring(7);
 
         try {
-            // 3. Valida o token (assinatura e expiração)
             if (!jwtUtil.isTokenValid(token)) {
-                return unauthorized(exchange); // Erro 401: Token inválido
+                return unauthorized(exchange);
             }
 
-            // 4. (BÔNUS) Extrai o e-mail e passa para os microsserviços
             String email = jwtUtil.extractUsername(token);
             ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-User-Email", email) // Adiciona um header seguro
+                    .header("X-User-Email", email)
                     .build();
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
@@ -68,12 +66,10 @@ public class AuthFilter implements GlobalFilter, Ordered {
         }
     }
 
-    // Método auxiliar para verificar se a rota está na lista de rotas públicas
     private boolean isPublicRoute(String path) {
         return publicRoutes.stream().anyMatch(path::startsWith);
     }
 
-    // Método auxiliar para retornar 401 Unauthorized
     private Mono<Void> unauthorized(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
