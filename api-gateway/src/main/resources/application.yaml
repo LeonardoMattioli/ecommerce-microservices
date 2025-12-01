@@ -21,8 +21,6 @@ spring:
           uri: lb://CATALOG-SERVICE
           predicates:
             - Path=/api/products/**, /api/categories/**
-          filters:
-            - AuthenticationFilter
 
 eureka:
   client:

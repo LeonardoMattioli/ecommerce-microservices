@@ -19,7 +19,7 @@ public class ProductController {
 
     private final ProductUseCase productUseCase;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         ProductResponse response = productUseCase.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
