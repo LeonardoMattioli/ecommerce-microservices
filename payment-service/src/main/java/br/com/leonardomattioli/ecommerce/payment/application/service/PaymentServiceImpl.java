@@ -38,7 +38,6 @@ public class PaymentServiceImpl implements ProcessPaymentUseCase {
         }
 
         Payment payment = Payment.builder()
-                .id(UUID.randomUUID())
                 .orderId(request.orderId())
                 .userId(request.userId())
                 .amount(request.amount())
