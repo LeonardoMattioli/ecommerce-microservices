@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OrderController {
 
-    @Autowired
     private final CreateOrderUseCase createOrderUseCase;
 
     @PostMapping
