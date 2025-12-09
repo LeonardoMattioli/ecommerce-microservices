@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # SERVIÇOS DE INFRAESTRUTURA
+  # ==========================================
+
+  service-discovery:
+    build: ./service-discovery
+    container_name: service-discovery
+    ports:
+      - "8761:8761"
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      # A chave secreta também deve ser passada aqui se não estiver hardcoded
+      - APP_JWT_SECRET=YyN1cDIkUnNlY3VyZV8kM2NyM3QhX2tleV9mb3JfYXV0aGVudGljYXRpb25fMTIzNDU2Nzg5MA==
+    networks:
+      - ecommerce-network
+    depends_on:
+      service-discovery:
+        condition: service_healthy
+
+  # ==========================================
+  # BANCOS DE DADOS
+  # ==========================================
+
+  postgres-users:
+    image: postgres:15-alpine
+    container_name: postgres-users
+    environment:
+      - POSTGRES_DB=users_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432" # Mapeado para local para debug se necessário
+    networks:
+      - ecommerce-network
+
+  postgres-catalog:
+    image: postgres:15-alpine
+    container_name: postgres-catalog
+    environment:
+      - POSTGRES_DB=catalog_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432" # Porta externa diferente para não conflitar
+    networks:
+      - ecommerce-network
+
+  postgres-orders:
+    image: postgres:15-alpine
+    container_name: postgres-orders
+    environment:
+      - POSTGRES_DB=orders_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5434:5432"
+    networks:
+      - ecommerce-network
+
+  postgres-payment:
+    image: postgres:15-alpine
+    container_name: postgres-payment
+    environment:
+      - POSTGRES_DB=payment_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5435:5432"
+    networks:
+      - ecommerce-network
+
+  # ==========================================
+  # MICROSERVIÇOS DE NEGÓCIO
+  # ==========================================
+
+  users-service:
+    build: ./users-service
+    container_name: users-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-users:5432/users_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+    networks:
+      - ecommerce-network
+    depends_on:
+      - service-discovery
+      - postgres-users
+
+  catalog-service:
+    build: ./catalog-service
+    container_name: catalog-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-catalog:5432/catalog_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+    networks:
+      - ecommerce-network
+    depends_on:
+      - service-discovery
+      - postgres-catalog
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-payment:5432/payment_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+    networks:
+      - ecommerce-network
+    depends_on:
+      - service-discovery
+      - postgres-payment
+
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-orders:5432/orders_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+    networks:
+      - ecommerce-network
+    depends_on:
+      - service-discovery
+      - postgres-orders
+      - catalog-service
+      - payment-service
+
+networks:
+  ecommerce-network:
+    driver: bridge
