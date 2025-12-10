@@ -22,6 +22,7 @@
     <module>catalog-service</module>
     <module>payment-service</module>
     <module>order-service</module>
+    <module>inventory-service</module>
   </modules>
 
   <dependencyManagement>
