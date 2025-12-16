@@ -25,7 +25,6 @@ services:
       - "8080:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
-      # A chave secreta também deve ser passada aqui se não estiver hardcoded
       - APP_JWT_SECRET=YyN1cDIkUnNlY3VyZV8kM2NyM3QhX2tleV9mb3JfYXV0aGVudGljYXRpb25fMTIzNDU2Nzg5MA==
     networks:
       - ecommerce-network
@@ -45,7 +44,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "5432:5432" # Mapeado para local para debug se necessário
+      - "5432:5432"
     networks:
       - ecommerce-network
 
@@ -57,7 +56,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "5433:5432" # Porta externa diferente para não conflitar
+      - "5433:5432"
     networks:
       - ecommerce-network
 
@@ -82,6 +81,19 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5435:5432"
+    networks:
+      - ecommerce-network
+
+  # --- NOVO BANCO ADICIONADO ---
+  postgres-inventory:
+    image: postgres:15-alpine
+    container_name: postgres-inventory
+    environment:
+      - POSTGRES_DB=inventory_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5436:5432" # Porta externa 5436 mapeada para a interna 5432
     networks:
       - ecommerce-network
 
@@ -131,9 +143,9 @@ services:
       - service-discovery
       - postgres-payment
 
-  order-service:
-    build: ./order-service
-    container_name: order-service
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-orders:5432/orders_db
       - SPRING_DATASOURCE_USERNAME=postgres
@@ -146,6 +158,22 @@ services:
       - postgres-orders
       - catalog-service
       - payment-service
+
+  # --- NOVO SERVIÇO ADICIONADO ---
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    environment:
+      # Conecta no novo banco 'postgres-inventory'
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-inventory:5432/inventory_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+    networks:
+      - ecommerce-network
+    depends_on:
+      - service-discovery
+      - postgres-inventory
 
 networks:
   ecommerce-network:
