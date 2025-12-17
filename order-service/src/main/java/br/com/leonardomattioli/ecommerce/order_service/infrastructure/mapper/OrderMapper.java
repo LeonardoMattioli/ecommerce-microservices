@@ -18,6 +18,7 @@ public class OrderMapper {
                 .userId(domain.getUserId())
                 .totalAmount(domain.getTotalAmount())
                 .status(domain.getStatus())
+                .reservationId(domain.getReservationId())
                 .createdAt(domain.getCreatedAt())
                 .build();
 
@@ -50,6 +51,7 @@ public class OrderMapper {
                 .status(entity.getStatus())
                 .totalAmount(entity.getTotalAmount())
                 .createdAt(entity.getCreatedAt())
+                .reservationId(entity.getReservationId())
                 .items(items)
                 .build();
     }

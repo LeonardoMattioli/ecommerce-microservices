@@ -5,6 +5,7 @@ import br.com.leonardomattioli.ecommerce.order_service.application.dto.OrderItem
 import br.com.leonardomattioli.ecommerce.order_service.application.dto.OrderResponse;
 import br.com.leonardomattioli.ecommerce.order_service.application.ports.inbound.CreateOrderUseCase;
 import br.com.leonardomattioli.ecommerce.order_service.application.ports.outbound.CatalogGateway;
+import br.com.leonardomattioli.ecommerce.order_service.application.ports.outbound.InventoryGateway;
 import br.com.leonardomattioli.ecommerce.order_service.application.ports.outbound.OrderRepositoryPort;
 import br.com.leonardomattioli.ecommerce.order_service.application.ports.outbound.PaymentGateway;
 import br.com.leonardomattioli.ecommerce.order_service.domain.enums.OrderStatus;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,45 +27,69 @@ public class OrderServiceImpl implements CreateOrderUseCase {
     private final OrderRepositoryPort orderRepositoryPort;
     private final CatalogGateway catalogGateway;
     private final PaymentGateway paymentGateway;
+    private final InventoryGateway inventoryGateway;
 
     @Override
     public OrderResponse createOrder(OrderCreateRequest request) {
-        List<OrderItem> orderItens = new ArrayList<>();
 
+        List<OrderItem> orderItems = new ArrayList<>();
         for (OrderItemRequest itemRequest : request.items()) {
-            BigDecimal realPrice = catalogGateway.getProductPrice(itemRequest.productId()).
-                    orElseThrow(
-                            () -> new IllegalArgumentException(
-                                    "Product not found or Unavailable" + itemRequest.productId()));
+            BigDecimal realPrice = catalogGateway.getProductPrice(itemRequest.productId())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found: " + itemRequest.productId()));
 
-            OrderItem item = OrderItem.builder()
+            orderItems.add(OrderItem.builder()
                     .productId(itemRequest.productId())
                     .quantity(itemRequest.quantity())
                     .price(realPrice)
-                    .build();
-            orderItens.add(item);
+                    .build());
         }
 
         Order order = Order.builder()
                 .userId(request.userId())
-                .items(orderItens)
+                .items(orderItems)
                 .status(OrderStatus.CREATED)
                 .createdAt(LocalDateTime.now())
                 .build();
-
         order.calculateTotal();
 
         Order savedOrder = orderRepositoryPort.save(order);
-        boolean isPaid = paymentGateway.requestPayment(savedOrder.getId(), savedOrder.getUserId(), savedOrder.getTotalAmount());
 
-        if (isPaid) {
-            savedOrder.setStatus(OrderStatus.PAID);
-        } else {
+        try {
+            UUID reservationId = null;
+            for (OrderItem item : savedOrder.getItems()) {
+                reservationId = inventoryGateway.reserveStock(
+                        savedOrder.getId(),
+                        item.getProductId(),
+                        item.getQuantity()
+                );
+            }
+            savedOrder.setReservationId(reservationId);
+            orderRepositoryPort.save(savedOrder);
+
+            boolean isPaid = paymentGateway.requestPayment(
+                    savedOrder.getId(),
+                    savedOrder.getUserId(),
+                    savedOrder.getTotalAmount()
+            );
+
+            if (isPaid) {
+                savedOrder.setStatus(OrderStatus.PAID);
+                inventoryGateway.confirmReservation(reservationId);
+            } else {
+                savedOrder.setStatus(OrderStatus.CANCELLED);
+                inventoryGateway.rollbackReservation(reservationId);
+            }
+
+        } catch (Exception e) {
             savedOrder.setStatus(OrderStatus.CANCELLED);
         }
 
         Order finalOrder = orderRepositoryPort.save(savedOrder);
 
-        return new OrderResponse(finalOrder.getId(), finalOrder.getStatus().name(), finalOrder.getTotalAmount());
+        return new OrderResponse(
+                finalOrder.getId(),
+                finalOrder.getStatus().name(),
+                finalOrder.getTotalAmount()
+        );
     }
 }

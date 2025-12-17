@@ -25,6 +25,8 @@ public class OrderEntity {
     private UUID userId;
     private BigDecimal totalAmount;
 
+    private UUID reservationId;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
