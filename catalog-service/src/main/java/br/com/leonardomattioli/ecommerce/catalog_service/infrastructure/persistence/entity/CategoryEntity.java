@@ -1,9 +1,7 @@
 package br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,6 +10,8 @@ import java.util.UUID;
 @Table(name = "categories")
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class CategoryEntity {
     @Id
