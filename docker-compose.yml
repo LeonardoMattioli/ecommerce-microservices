@@ -26,11 +26,55 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
       - APP_JWT_SECRET=YyN1cDIkUnNlY3VyZV8kM2NyM3QhX2tleV9mb3JfYXV0aGVudGljYXRpb25fMTIzNDU2Nzg5MA==
+      - SPRING_DATA_REDIS_HOST=redis
     networks:
       - ecommerce-network
     depends_on:
       service-discovery:
         condition: service_healthy
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce-network
+
+  # ==========================================
+  # MENSAGERIA (KAFKA + ZOOKEEPER)
+  # ==========================================
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - ecommerce-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Configuração para comunicação interna (Docker) e externa (Localhost)
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - ecommerce-network
 
   # ==========================================
   # BANCOS DE DADOS
@@ -84,7 +128,6 @@ services:
     networks:
       - ecommerce-network
 
-  # --- NOVO BANCO ADICIONADO ---
   postgres-inventory:
     image: postgres:15-alpine
     container_name: postgres-inventory
@@ -93,7 +136,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "5436:5432" # Porta externa 5436 mapeada para a interna 5432
+      - "5436:5432"
     networks:
       - ecommerce-network
 
@@ -137,20 +180,23 @@ services:
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
       - ecommerce-network
     depends_on:
       - service-discovery
       - postgres-payment
+      - kafka
 
-  orders-service:
-    build: ./orders-service
-    container_name: orders-service
+  order-service:
+    build: ./order-service
+    container_name: order-service
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-orders:5432/orders_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
       - ecommerce-network
     depends_on:
@@ -158,29 +204,23 @@ services:
       - postgres-orders
       - catalog-service
       - payment-service
+      - kafka
 
   inventory-service:
     build: ./inventory-service
     container_name: inventory-service
     environment:
-      # Conecta no novo banco 'postgres-inventory'
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-inventory:5432/inventory_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-discovery:8761/eureka/
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
       - ecommerce-network
     depends_on:
       - service-discovery
       - postgres-inventory
-
-  redis:
-    image: redis:alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - ecommerce-network
+      - kafka
 
 networks:
   ecommerce-network:
