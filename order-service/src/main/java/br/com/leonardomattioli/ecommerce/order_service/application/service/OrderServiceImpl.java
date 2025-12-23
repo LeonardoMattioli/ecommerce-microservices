@@ -11,8 +11,12 @@ import br.com.leonardomattioli.ecommerce.order_service.application.ports.outboun
 import br.com.leonardomattioli.ecommerce.order_service.domain.enums.OrderStatus;
 import br.com.leonardomattioli.ecommerce.order_service.domain.model.Order;
 import br.com.leonardomattioli.ecommerce.order_service.domain.model.OrderItem;
+import br.com.leonardomattioli.ecommerce.order_service.infrastructure.persistence.entity.OutboxEntity;
+import br.com.leonardomattioli.ecommerce.order_service.infrastructure.persistence.repository.OutboxJpaRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,7 +33,11 @@ public class OrderServiceImpl implements CreateOrderUseCase {
     private final PaymentGateway paymentGateway;
     private final InventoryGateway inventoryGateway;
 
+    private final OutboxJpaRepository outboxRepository;
+    private final ObjectMapper objectMapper;
+
     @Override
+    @Transactional
     public OrderResponse createOrder(OrderCreateRequest request) {
 
         List<OrderItem> orderItems = new ArrayList<>();
@@ -55,6 +63,25 @@ public class OrderServiceImpl implements CreateOrderUseCase {
         Order savedOrder = orderRepositoryPort.save(order);
 
         try {
+            String payload = objectMapper.writeValueAsString(savedOrder);
+
+            OutboxEntity event = OutboxEntity.builder()
+                    .id(UUID.randomUUID())
+                    .aggregateType("ORDER")
+                    .aggregateId(savedOrder.getId())
+                    .type("ORDER_CREATED")
+                    .payload(payload)
+                    .status("NEW")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            outboxRepository.save(event);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao persistir evento outbox", e);
+        }
+
+        try {
             UUID reservationId = null;
             for (OrderItem item : savedOrder.getItems()) {
                 reservationId = inventoryGateway.reserveStock(
@@ -63,6 +90,7 @@ public class OrderServiceImpl implements CreateOrderUseCase {
                         item.getQuantity()
                 );
             }
+
             savedOrder.setReservationId(reservationId);
             orderRepositoryPort.save(savedOrder);
 
