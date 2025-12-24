@@ -28,3 +28,11 @@ eureka:
   instance:
     hostname: localhost
     prefer-ip-address: false
+
+resilience4j:
+  retry:
+    instances:
+      inventoryConsumer:
+        max-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
