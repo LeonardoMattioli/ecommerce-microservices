@@ -101,4 +101,4 @@ git clone https://github.com/teu-usuario/ecommerce-microservices.git
 cd ecommerce-microservices
 ```
 
-Author: Leonardo Matioli
+Author: Leonardo Mattioli
