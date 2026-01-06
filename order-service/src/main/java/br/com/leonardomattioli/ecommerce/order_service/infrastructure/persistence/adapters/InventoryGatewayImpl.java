@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.ecommerce.order_service.infrastructure.adapters;
+package br.com.leonardomattioli.ecommerce.order_service.infrastructure.persistence.adapters;
 
 import br.com.leonardomattioli.ecommerce.order_service.application.ports.outbound.InventoryGateway;
 import br.com.leonardomattioli.ecommerce.order_service.infrastructure.external.InventoryClient;
