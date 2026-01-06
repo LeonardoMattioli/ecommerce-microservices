@@ -5,6 +5,11 @@ spring:
   application:
     name: api-gateway
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   cloud:
     gateway:
       discovery:
@@ -12,32 +17,58 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        # Rota de Usuários
         - id: users-service-route
           uri: lb://USERS-SERVICE
           predicates:
-            - Path=/api/users/**
+            - Path=/api/users/**, /api/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                # MUDANÇA AQUI: Limites estritos para teste manual
+                redis-rate-limiter.replenishRate: 1  # 1 requisição por segundo
+                redis-rate-limiter.burstCapacity: 1  # Sem acúmulo (bateu, levou)
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@ipKeyResolver}"
 
+        # Rota de Catálogo
         - id: catalog-service-route
           uri: lb://CATALOG-SERVICE
           predicates:
             - Path=/api/products/**, /api/categories/**
 
+        # Rota de Pagamentos
         - id: payment-service-route
           uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
 
-        - id: order-service-route
+        # Rota de Pedidos
+        - id: orders-service-route
           uri: lb://ORDERS-SERVICE
           predicates:
             - Path=/api/orders/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 2
+                key-resolver: "#{@ipKeyResolver}"
+
+        # Rota de Inventário
+        - id: inventory-service-route
+          uri: lb://INVENTORY-SERVICE
+          predicates:
+            - Path=/api/inventory/**
 
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: false
-
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
 
 jwt:
   secret: "YyN1cDIkUnNlY3VyZV8kM2NyM3QhX2tleV9mb3JfYXV0aGVudGljYXRpb25fMTIzNDU2Nzg5MA=="
@@ -48,3 +79,18 @@ app:
       - /api/users/login
       - /api/users/register
       - /api/users/refresh
+      - /eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+  logging:
+    pattern:
+      level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"

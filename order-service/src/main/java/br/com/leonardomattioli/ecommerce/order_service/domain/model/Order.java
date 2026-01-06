@@ -12,6 +12,7 @@ import java.util.UUID;
 public class Order {
     private UUID id;
     private UUID userId;
+    private UUID reservationId;
     private List<OrderItem> items;
     private BigDecimal totalAmount;
     private OrderStatus status;
@@ -29,9 +30,10 @@ public class Order {
 
     public Order() {}
 
-    public Order(UUID id, UUID userId, List<OrderItem> items, BigDecimal totalAmount, OrderStatus status, LocalDateTime createdAt) {
+    public Order(UUID id, UUID userId, UUID  reservationId,List<OrderItem> items, BigDecimal totalAmount, OrderStatus status, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
+        this.reservationId = reservationId;
         this.items = items;
         this.totalAmount = totalAmount;
         this.status = status;
@@ -52,6 +54,14 @@ public class Order {
 
     public void setUserId(UUID userId) {
         this.userId = userId;
+    }
+
+    public UUID getReservationId() {
+        return reservationId;
+    }
+
+    public void setReservationId(UUID reservationId) {
+        this.reservationId = reservationId;
     }
 
     public List<OrderItem> getItems() {

@@ -1,0 +1,11 @@
+package br.com.leonardomattioli.ecommerce.order_service.application.ports.outbound;
+
+import java.util.UUID;
+
+public interface InventoryGateway {
+    UUID reserveStock(UUID orderId, UUID productId, Integer quantity);
+
+    void confirmReservation(UUID reservationId);
+
+    void rollbackReservation(UUID reservationId);
+}
