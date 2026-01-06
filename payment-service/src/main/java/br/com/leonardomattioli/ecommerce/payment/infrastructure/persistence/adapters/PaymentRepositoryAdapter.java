@@ -1,10 +1,10 @@
-package br.com.leonardomattioli.ecommerce.payment.infrastructure.adapters;
+package br.com.leonardomattioli.ecommerce.payment.infrastructure.persistence.adapters;
 
 import br.com.leonardomattioli.ecommerce.payment.application.ports.outbound.PaymentRepositoryPort;
 import br.com.leonardomattioli.ecommerce.payment.domain.models.Payment;
 import br.com.leonardomattioli.ecommerce.payment.infrastructure.mapper.PaymentMapper;
 import br.com.leonardomattioli.ecommerce.payment.infrastructure.persistence.entity.PaymentEntity;
-import br.com.leonardomattioli.ecommerce.payment.infrastructure.repository.PaymentJpaRepository;
+import br.com.leonardomattioli.ecommerce.payment.infrastructure.persistence.repository.PaymentJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

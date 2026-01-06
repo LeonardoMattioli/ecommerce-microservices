@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.ecommerce.payment.infrastructure.repository;
+package br.com.leonardomattioli.ecommerce.payment.infrastructure.persistence.repository;
 
 import br.com.leonardomattioli.ecommerce.payment.infrastructure.persistence.entity.PaymentEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
