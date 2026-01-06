@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.ecommerce.users.infrastructure.dtos;
+package br.com.leonardomattioli.ecommerce.users.application.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

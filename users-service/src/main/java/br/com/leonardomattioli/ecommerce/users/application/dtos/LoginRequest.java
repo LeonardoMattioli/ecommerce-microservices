@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.ecommerce.users.infrastructure.dtos;
+package br.com.leonardomattioli.ecommerce.users.application.dtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
