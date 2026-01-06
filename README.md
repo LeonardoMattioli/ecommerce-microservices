@@ -99,4 +99,6 @@ A infraestrutura completa é orquestrada via **Docker Compose**.
 ```bash
 git clone https://github.com/teu-usuario/ecommerce-microservices.git
 cd ecommerce-microservices
+```
 
+Author: Leonardo Matioli
