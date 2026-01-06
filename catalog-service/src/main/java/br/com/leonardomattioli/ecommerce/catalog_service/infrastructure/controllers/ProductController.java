@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.controllers;
+package br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.controllers;
 
 import br.com.leonardomattioli.ecommerce.catalog_service.application.dto.ProductCreateRequest;
 import br.com.leonardomattioli.ecommerce.catalog_service.application.dto.ProductResponse;

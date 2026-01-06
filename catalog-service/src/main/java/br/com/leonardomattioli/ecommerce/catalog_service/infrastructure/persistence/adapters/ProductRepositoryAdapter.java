@@ -4,8 +4,8 @@ import br.com.leonardomattioli.ecommerce.catalog_service.application.port.outbou
 import br.com.leonardomattioli.ecommerce.catalog_service.domain.models.Product;
 import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.entity.CategoryEntity;
 import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.entity.ProductEntity;
-import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.mapper.CategoryMapper;
-import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.mapper.ProductMapper;
+import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.mapper.CategoryMapper;
+import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.mapper.ProductMapper;
 import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.repository.CategoryJpaRepository;
 import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;

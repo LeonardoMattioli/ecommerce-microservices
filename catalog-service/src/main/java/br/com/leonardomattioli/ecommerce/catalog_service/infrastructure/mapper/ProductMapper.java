@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.mapper;
+package br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.mapper;
 
 import br.com.leonardomattioli.ecommerce.catalog_service.domain.models.Category;
 import br.com.leonardomattioli.ecommerce.catalog_service.domain.models.Product;

@@ -3,7 +3,7 @@ package br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persist
 import br.com.leonardomattioli.ecommerce.catalog_service.application.port.outbound.CategoryRepositoryPort;
 import br.com.leonardomattioli.ecommerce.catalog_service.domain.models.Category;
 import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.entity.CategoryEntity;
-import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.mapper.CategoryMapper;
+import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.mapper.CategoryMapper;
 import br.com.leonardomattioli.ecommerce.catalog_service.infrastructure.persistence.repository.CategoryJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
