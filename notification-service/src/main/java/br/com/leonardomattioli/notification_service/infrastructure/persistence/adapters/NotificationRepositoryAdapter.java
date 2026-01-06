@@ -1,4 +1,4 @@
-package br.com.leonardomattioli.notification_service.infrastructure.adapters;
+package br.com.leonardomattioli.notification_service.infrastructure.persistence.adapters;
 
 import br.com.leonardomattioli.notification_service.application.ports.outbound.NotificationRepositoryPort;
 import br.com.leonardomattioli.notification_service.domain.model.Notification;
